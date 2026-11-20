@@ -112,18 +112,18 @@ class KeitaroClient:
         if not self._settings.keitaro_api_key:
             raise KeitaroError(0, "В .env не задан KEITARO_API_KEY")
         try:
-            response = httpx.request(
-                method,
-                self._root + path,
-                headers={
-                    "Api-Key": self._settings.keitaro_api_key,
-                    "Accept": "application/json",
-                    "Content-Type": "application/json",
-                },
-                json=json,
-                params=params,
-                timeout=self._timeout,
-            )
+            with httpx.Client(timeout=self._timeout, trust_env=False) as http:
+                response = http.request(
+                    method,
+                    self._root + path,
+                    headers={
+                        "Api-Key": self._settings.keitaro_api_key,
+                        "Accept": "application/json",
+                        "Content-Type": "application/json",
+                    },
+                    json=json,
+                    params=params,
+                )
         except httpx.HTTPError as exc:
             raise KeitaroError(0, f"Нет связи с Keitaro: {exc}") from exc
         if response.status_code >= 400:

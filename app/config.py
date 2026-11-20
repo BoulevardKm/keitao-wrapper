@@ -33,9 +33,9 @@ class Settings:
 def load_settings() -> Settings:
     load_dotenv(ROOT / ".env")
     return Settings(
-        keitaro_base_url=_env("KEITARO_BASE_URL", "https://yellowplastercrutch.com"),
+        keitaro_base_url=_env("KEITARO_BASE_URL", "https://in.posdk.xyz"),
         keitaro_api_key=_env("KEITARO_API_KEY"),
-        keitaro_domain=_env("KEITARO_DOMAIN", "in.posdk.xyz"),
+        keitaro_domain=_env("KEITARO_DOMAIN", "kylovoa.com"),
         keitaro_group=_env("KEITARO_GROUP", "FORTESTS"),
         keitaro_source=_env("KEITARO_SOURCE", "FORTESTS"),
         keitaro_safe_url=_env("KEITARO_SAFE_URL", "https://google.com"),
