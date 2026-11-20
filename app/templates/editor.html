@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}{% if campaign %}{{ campaign.name }}{% else %}Кампания {{ keitaro_id }}{% endif %} — Keitaro wrapper{% endblock %}
+{% block lede %}Редактор офферов. В Keitaro изменения попадают только после публикации.{% endblock %}
+{% block body %}
+  {% if campaign %}
+    <section class="card head">
+      <div>
+        <h1>{{ campaign.name }}</h1>
+        <p class="meta">
+          #{{ campaign.keitaro_id }}
+          {% if campaign.alias %}· {{ campaign.alias }}{% endif %}
+          {% if campaign.group_name %}· {{ campaign.group_name }}{% endif %}
+          {% if campaign.source_name %}· {{ campaign.source_name }}{% endif %}
+        </p>
+        {% if tracking_url %}
+          <p class="meta"><a href="{{ tracking_url }}" target="_blank" rel="noreferrer">{{ tracking_url }}</a></p>
+        {% endif %}
+      </div>
+      <form method="post" action="/campaigns/{{ campaign.keitaro_id }}/fetch" {% if dirty %}data-confirm="Загрузка из Keitaro сбросит неопубликованные правки."{% endif %}>
+        <button type="submit">Fetch streams</button>
+      </form>
+    </section>
+
+    {% for stream in streams %}
+      <section class="card stream {% if stream.dirty %}dirty{% endif %}">
+        <div class="stream-head">
+          <div>
+            <h2>{{ stream.name }}</h2>
+            <p class="meta">позиция {{ stream.position }} · поток {{ stream.keitaro_id }}</p>
+          </div>
+          {% if stream.offer_stream %}
+            <div class="actions">
+              {% if stream.dirty %}
+                <span class="badge">не опубликовано</span>
+              {% else %}
+                <span class="badge quiet">синхронизировано</span>
+              {% endif %}
+              <form method="post" action="/campaigns/{{ campaign.keitaro_id }}/streams/{{ stream.id }}/push">
+                <button class="primary" type="submit" {% if not stream.dirty %}disabled{% endif %}>Push to Keitaro</button>
+              </form>
+              <form method="post" action="/campaigns/{{ campaign.keitaro_id }}/streams/{{ stream.id }}/cancel">
+                <button type="submit" {% if not stream.dirty %}disabled{% endif %}>Cancel</button>
+              </form>
+            </div>
+          {% endif %}
+        </div>
+
+        {% if stream.offer_stream %}
+          {% set total = namespace(value=0) %}
+          <table>
+            <thead>
+              <tr>
+                <th>Id</th>
+                <th>Оффер</th>
+                <th>Доля</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for offer in stream.bindings | sort(attribute="id") %}
+                {% if offer.status == "active" %}
+                  {% set total.value = total.value + offer.share %}
+                {% endif %}
+                <tr class="{{ offer.status }}">
+                  <td>{{ offer.offer_id }}</td>
+                  <td>
+                    {{ offer.name }}
+                    {% if offer.pinned %}<span class="badge quiet">пин</span>{% endif %}
+                  </td>
+                  <td class="share">{{ offer.share }}%</td>
+                  <td class="row-actions">
+                    {% if offer.status == "active" %}
+                      <form method="post" action="/campaigns/{{ campaign.keitaro_id }}/streams/{{ stream.id }}/offers/{{ offer.id }}/pin">
+                        <input type="hidden" name="pinned" value="{{ 0 if offer.pinned else 1 }}">
+                        <button type="submit">{{ "Снять пин" if offer.pinned else "Запинить" }}</button>
+                      </form>
+                      <form method="post" action="/campaigns/{{ campaign.keitaro_id }}/streams/{{ stream.id }}/offers/{{ offer.id }}/remove">
+                        <button type="submit">Remove</button>
+                      </form>
+                    {% else %}
+                      <form method="post" action="/campaigns/{{ campaign.keitaro_id }}/streams/{{ stream.id }}/offers/{{ offer.id }}/restore">
+                        <button type="submit">Bring back</button>
+                      </form>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% else %}
+                <tr><td colspan="4" class="muted">В потоке пока нет офферов.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <p class="meta">Сумма активных долей: {{ total.value }}%</p>
+          <form method="post" action="/campaigns/{{ campaign.keitaro_id }}/streams/{{ stream.id }}/offers" class="add-row">
+            <span class="finder" data-finder>
+              <input class="finder-input" type="text" placeholder="ID или название оффера" autocomplete="off">
+              <input class="finder-id" type="hidden" name="offer_id">
+              <span class="finder-menu" hidden></span>
+            </span>
+            <button type="submit">Добавить</button>
+          </form>
+        {% else %}
+          <p class="note">В потоке нет офферов. Фильтры и адрес редиректа не показываем.</p>
+        {% endif %}
+      </section>
+    {% else %}
+      <section class="card">
+        <p class="note">В кампании нет потоков. Нажмите Fetch streams, если они появились в Keitaro.</p>
+      </section>
+    {% endfor %}
+  {% else %}
+    <section class="card">
+      <h1>Кампания {{ keitaro_id }}</h1>
+      <p class="note">Локально её ещё нет. Загрузка прочитает потоки из Keitaro.</p>
+      <form method="post" action="/campaigns/{{ keitaro_id }}/fetch">
+        <button class="primary" type="submit">Fetch streams</button>
+      </form>
+    </section>
+  {% endif %}
+{% endblock %}

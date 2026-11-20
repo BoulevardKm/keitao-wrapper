@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Keitaro wrapper{% endblock %}</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <a class="brand" href="/">Keitaro wrapper</a>
+      <p class="lede">{% block lede %}{% endblock %}</p>
+    </header>
+    {% if error %}
+      <p class="banner error">{{ error }}</p>
+    {% endif %}
+    {% if ok %}
+      <p class="banner ok">{{ ok }}</p>
+    {% endif %}
+    {% block body %}{% endblock %}
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

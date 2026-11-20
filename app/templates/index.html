@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Новая кампания — Keitaro wrapper{% endblock %}
+{% block lede %}Создание кампании и переход к уже существующей.{% endblock %}
+{% block body %}
+  <div class="grid">
+    <section class="card">
+      <h1>Новая кампания</h1>
+      <p class="note">
+        Страны из гео попадут в первый поток и уйдут на Google.
+        Все остальные клики заберёт второй поток и отправит на выбранный оффер.
+        Домен {{ domain }}, группа {{ group }}, источник {{ source }}.
+      </p>
+      <form method="post" action="/campaigns" class="stack">
+        <label>
+          Название
+          <input name="name" required placeholder="Имя кампании">
+        </label>
+        <label>
+          Гео
+          <input name="geo" required placeholder="MX, AU, RO" autocapitalize="characters">
+        </label>
+        <label>
+          Оффер
+          <span class="finder" data-finder>
+            <input class="finder-input" type="text" placeholder="ID или название" autocomplete="off">
+            <input class="finder-id" type="hidden" name="offer_id">
+            <span class="finder-menu" hidden></span>
+          </span>
+        </label>
+        <button class="primary" type="submit">Создать</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h1>Открыть кампанию</h1>
+      <p class="note">Id из админки Keitaro или alias, например wVqNTR. Потоки будут прочитаны из трекера.</p>
+      <form method="post" action="/campaigns/open" class="stack">
+        <label>
+          Id или alias
+          <input name="campaign" required placeholder="139 или wVqNTR">
+        </label>
+        <button type="submit">Открыть</button>
+      </form>
+      {% if campaigns %}
+        <h2>Уже открывали</h2>
+        <ul class="links">
+          {% for campaign in campaigns %}
+            <li>
+              <a href="/campaigns/{{ campaign.keitaro_id }}">{{ campaign.name }}</a>
+              <span class="muted">#{{ campaign.keitaro_id }}{% if campaign.alias %} · {{ campaign.alias }}{% endif %}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </section>
+  </div>
+{% endblock %}
